@@ -1,0 +1,12 @@
+prefix=
+exec_prefix=
+libdir=${pcfiledir}/src
+includedir=${pcfiledir}/include
+
+Name: meram uninstalled
+Description: A library for controlling SH-Mobile MERAM
+Requires:
+Version: @VERSION@
+Libs: -L${libdir} -lmeram
+Libs.private:
+Cflags: -I${includedir}

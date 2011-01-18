@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: meram
+Description: A library for controlling SH-Mobile MERAM
+Requires:
+Version: @VERSION@
+Libs: -L${libdir} -lmeram
+Libs.private:
+Cflags: -I${includedir}

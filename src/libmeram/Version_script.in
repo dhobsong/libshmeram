@@ -1,0 +1,26 @@
+#
+# Export file for libshveu
+#
+# Only the symbols listed in the global section will be callable from
+# applications linking to libuiomux.
+#
+
+@PACKAGE@.so.0.0
+{
+        global:
+		meram_open;
+		meram_close;
+		meram_lock_icb;
+		meram_unlock_icb;
+		meram_lock_reg;
+		meram_unlock_reg;
+		meram_alloc_memory_block;
+		meram_free_memory_block;
+		meram_read_icb;
+		meram_write_icb;
+		meram_read_reg;
+		meram_write_reg;
+		
+        local:
+                *;
+};
