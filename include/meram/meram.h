@@ -23,10 +23,6 @@
 extern "C" {
 #endif
 
-#define MERAM_REG_BASE 0xE8000000
-#define MERAM_REG_SIZE 0x200000
-#define MERAM_ICB0BASE 0x400
-#define MERAM_ICB28BASE 0x780
 #define MExxCTL 0x0
 #define MExxSIZE 0x4
 #define MExxMNCF 0x8
@@ -39,8 +35,6 @@ extern "C" {
 #define MEACTS 0x10
 #define MEQSEL1 0x40
 #define MEQSEL2 0x44
-
-#define BLOCK_SIZE 64
 
 /** \file
   * The libmeram C API
