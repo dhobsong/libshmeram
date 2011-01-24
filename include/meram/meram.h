@@ -42,9 +42,6 @@ extern "C" {
 
 #define BLOCK_SIZE 64
 
-#define MERAM_START(ind, ab) (0xC0000000 | ((ab & 0x1) << 23) | \
-	((ind & 0x1F) << 24))
-
 /** \file
   * The libmeram C API
   *
@@ -166,6 +163,14 @@ void meram_read_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 void meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 		unsigned long val);
 
+/**
+  * Get the address used to access a specific ICB
+  * \param meram MERAM handle
+  * \param icb handle to ICB
+  * \param ab specify which bank to access 0 = a, 1 = b
+  * \retval 0 Failure, othewise address to access
+  */
+unsigned long meram_get_icb_address(MERAM *meram, ICB *icb, int ab);
 #ifdef __cplusplus
 }
 #endif

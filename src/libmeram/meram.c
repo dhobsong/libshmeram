@@ -35,6 +35,7 @@ struct ICB {
 	unsigned long offset;
 	unsigned long lock_offset;
 	unsigned long len;
+	int index;
 };
 
 struct MERAM_REG {
@@ -112,6 +113,7 @@ ICB *meram_lock_icb(MERAM *meram, int index)
 	/*offset and size determination*/
 	icb->offset = 0x400 + index * 0x20;
 	icb->len = 0x20;
+	icb->index = index;
 	
 	if (uiomux_partial_lock(meram->uiomux, UIOMUX_SH_MERAM,
 		icb->lock_offset, icb->len) < 0) {
@@ -231,6 +233,15 @@ void meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 	volatile unsigned long *reg = meram->vaddr + meram_reg->offset + offset;
 	*reg = val;
 }
+
+unsigned long
+meram_get_icb_address(MERAM *meram, ICB *icb, int ab) {
+	if (icb) 
+		return (0xC0000000 | ((ab & 1) << 23) |
+				((icb->index & 0x1F) << 24));
+	return 0;
+}
+
 #define TOKENS " \t"
 #define LINE_LEN 255
 int
