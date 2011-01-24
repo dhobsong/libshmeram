@@ -14,6 +14,6 @@ lib_LTLIBRARIES = libmeram.la
 libmeram_la_SOURCES = \
 	meram.c
 
-libmeram_la_CFLAGS = $(UIOMUX_CFLAGS)
+libmeram_la_CFLAGS = $(UIOMUX_CFLAGS) -DCONFIG_FILE=\"/etc/meram.conf\"
 libmeram_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 libmeram_la_LIBADD = $(UIOMUX_LIBS)

@@ -1,7 +1,10 @@
 #include <meram/meram.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <string.h>
 #include <uiomux/uiomux.h>
+#include "meram_priv.h"
 
 #define UIOMUX_SH_MERAM 1
 #define UIOMUX_SH_MERAM_MEM 2
@@ -24,6 +27,7 @@ struct MERAM {
 	unsigned long mem_paddr;
 	void *mem_vaddr;
 	unsigned long mem_len;
+	struct reserved_address *reserved_mem;
 };
 
 struct ICB {
@@ -44,6 +48,7 @@ MERAM *meram_open(void)
 {
 	MERAM *meram;
 	int ret;
+	static struct reserved_address *reserved_mem;
 
 	meram = calloc(1, sizeof(*meram));
 	if (!meram)
@@ -54,6 +59,7 @@ MERAM *meram_open(void)
 	if (uiomux == NULL) {
 		uiomux = uiomux_open_named(uios);
 	}
+	make_reserved_addr_list(CONFIG_FILE, &reserved_mem);
 	pthread_mutex_unlock(&uiomux_mutex);
 
 	if (!uiomux)
@@ -78,6 +84,7 @@ MERAM *meram_open(void)
 		/*TODO: check ref count*/
 		return NULL;	
 	}
+	meram->reserved_mem = reserved_mem;
 	return meram;
 }
 
@@ -88,6 +95,7 @@ void meram_close(MERAM *meram)
 	if (ref_count == 1) {
 		uiomux_close(uiomux);
 		uiomux = NULL;
+		delete_reserved_addr_list(meram->reserved_mem);
 	}	
 	pthread_mutex_unlock(&uiomux_mutex);
 	free(meram);
@@ -146,13 +154,51 @@ void meram_unlock_reg(MERAM *meram, MERAM_REG *meram_reg)
 int meram_alloc_memory_block(MERAM *meram, int size)
 {
 	int alloc_size = size << 10;
-	void *alloc_ptr;
+	void *alloc_ptr = NULL;
+	struct reserved_address *current;
+	current = meram->reserved_mem;
 	/* uiomux_malloc has minimum 1 page (4k) alignment*/
-	alloc_ptr = uiomux_malloc(meram->uiomux, UIOMUX_SH_MERAM,
-		alloc_size, 1024);
-	
-	if (!alloc_ptr) 
-		return -1;	
+	while (!alloc_ptr) {	
+		alloc_ptr = uiomux_malloc(meram->uiomux, UIOMUX_SH_MERAM,
+			alloc_size, 1024);
+		if (!alloc_ptr) 
+			return -1;
+		current = meram->reserved_mem;
+		while (current) {
+			unsigned long alloc_beg = (unsigned long)
+				(alloc_ptr - meram->mem_vaddr);
+			unsigned long alloc_end = alloc_beg + alloc_size - 
+				(1 << 10);
+			unsigned long cur_beg = current->start_block << 10;
+			unsigned long cur_end = current->end_block << 10;
+			if (alloc_beg > cur_end ) {
+				current = current->next;
+				continue;
+			}
+			if ((alloc_end) < cur_beg) {
+				current = current->next;
+				continue;
+			}
+			if (alloc_beg < cur_beg) {
+				fprintf(stderr, "1 Freeing %x bytes at %p\n",
+					cur_beg - alloc_beg, alloc_ptr);
+				uiomux_free(meram->uiomux, UIOMUX_SH_MERAM,
+					alloc_ptr,
+					cur_beg - alloc_beg);
+			}
+			if (alloc_end > cur_end) {
+				fprintf(stderr, "2 Freeing %x bytes at %p\n",
+					alloc_end - cur_end,
+					meram->mem_vaddr + cur_end);
+				uiomux_free(meram->uiomux, UIOMUX_SH_MERAM,
+					meram->mem_vaddr + cur_end +
+					(1 << 10), alloc_end - cur_end);
+			}
+			alloc_ptr = NULL;
+			break;
+		}
+	}
+		
 	return ((unsigned long) (alloc_ptr - meram->mem_vaddr)) >> 10;
 }
 void meram_free_memory_block(MERAM *meram, int offset, int size)
@@ -184,4 +230,73 @@ void meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 {
 	volatile unsigned long *reg = meram->vaddr + meram_reg->offset + offset;
 	*reg = val;
+}
+#define TOKENS " \t"
+#define LINE_LEN 255
+int
+make_reserved_addr_list(char *infile, struct reserved_address **head)
+{
+	int len = LINE_LEN;
+	struct reserved_address *current = NULL, *prev;
+	int i, num_fields;
+	char **fields;
+	FILE *cfg_file;
+	char linedata[LINE_LEN];
+	int line_cnt = 1;
+	char *id;
+
+	cfg_file = fopen (infile, "r");
+	if (!cfg_file) 
+		return -1;
+
+	while (fgets(linedata, len, cfg_file)) {
+		id = strtok(linedata, TOKENS);
+		if (id[0] == '#' || id[0] == '\n' || id[0] == 0) {
+			line_cnt ++;
+			continue;
+		}
+		if (!strcmp(id, "reserved")) {
+			num_fields = 2;
+			fields = calloc (num_fields, sizeof (char *));
+			for (i = 0; i < num_fields; i++) {
+				if (!(fields[i] = strtok(NULL, TOKENS))) {
+					fprintf(stderr, "Line %d: "
+						"Invalid data\n", line_cnt);
+					fclose(cfg_file);
+					return -1;			
+				}
+			}
+			if (strtok(NULL, TOKENS)) {
+				fprintf(stderr, "Line %d: Too few tokens\n",
+					line_cnt);
+				fclose(cfg_file);
+				return -1;			
+			}
+			if (!current) 
+				current = *head = calloc (1, 
+					sizeof (struct reserved_address));
+			else {
+				current = calloc (1, 
+					sizeof (struct reserved_address));
+				prev->next = current;
+			}
+			current->start_block = atoi(fields[0]);
+			current->end_block = atoi(fields[1]);
+			current->next = NULL;
+			prev = current;
+		}
+		line_cnt ++;
+	}
+	fclose(cfg_file);
+	return 0;
+}
+void
+delete_reserved_addr_list(struct reserved_address *head)
+{
+	struct reserved_address *next = head;
+	while (head) {
+		next = head->next;
+		free(head);
+		head = next;	
+	}
 }
