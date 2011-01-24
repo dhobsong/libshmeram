@@ -114,12 +114,13 @@ ICB *meram_lock_icb(MERAM *meram, int index)
 	icb->offset = 0x400 + index * 0x20;
 	icb->len = 0x20;
 	icb->index = index;
-	
+#ifdef EXPERIMENTAL	
 	if (uiomux_partial_lock(meram->uiomux, UIOMUX_SH_MERAM,
 		icb->lock_offset, icb->len) < 0) {
 		free (icb);
 		return NULL;
 	}
+#endif
 	icb->locked = 1;
 	return icb; 
 }
@@ -129,9 +130,10 @@ void meram_unlock_icb(MERAM *meram, ICB *icb)
 {
 	/*partial uiomux unlock*/
 	icb->locked = 0;
+#ifdef EXPERIMENTAL
 	uiomux_partial_unlock(meram->uiomux, UIOMUX_SH_MERAM,
 		icb->lock_offset, icb->len);
-
+#endif
 	free(icb);	
 }
 
