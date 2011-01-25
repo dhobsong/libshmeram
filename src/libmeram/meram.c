@@ -93,7 +93,7 @@ void meram_close(MERAM *meram)
 {
 	pthread_mutex_lock(&uiomux_mutex);
 	ref_count--;
-	if (ref_count == 1) {
+	if (ref_count == 0) {
 		uiomux_close(uiomux);
 		uiomux = NULL;
 		delete_reserved_addr_list(meram->reserved_mem);
