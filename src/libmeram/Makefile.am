@@ -12,7 +12,9 @@ AM_CFLAGS =
 lib_LTLIBRARIES = libmeram.la
 
 libmeram_la_SOURCES = \
-	meram.c
+	meram.c \
+	ipmmui.c \
+	meram_priv.h
 
 libmeram_la_CFLAGS = $(UIOMUX_CFLAGS) -DCONFIG_FILE=\"/etc/meram.conf\"
 libmeram_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@

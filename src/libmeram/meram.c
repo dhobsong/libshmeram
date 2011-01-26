@@ -6,9 +6,6 @@
 #include <uiomux/uiomux.h>
 #include "meram_priv.h"
 
-#define UIOMUX_SH_MERAM 1
-#define UIOMUX_SH_MERAM_MEM 2
-
 static UIOMux *uiomux = NULL;
 static pthread_mutex_t uiomux_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -16,40 +13,16 @@ static int ref_count = 0;
 
 static const char *uios[] = {
 	"MERAM",
+	"IPMMUI",
 	NULL
 };
-
-struct MERAM {
-	UIOMux *uiomux;
-	unsigned long paddr;
-	void *vaddr;
-	unsigned long len;
-	unsigned long mem_paddr;
-	void *mem_vaddr;
-	unsigned long mem_len;
-	struct reserved_address *reserved_mem;
-};
-
-struct ICB {
-	int locked;
-	unsigned long offset;
-	unsigned long lock_offset;
-	unsigned long len;
-	int index;
-};
-
-struct MERAM_REG {
-	int locked;
-	unsigned long offset;
-	unsigned long len;
-};
-
 
 MERAM *meram_open(void)
 {
 	MERAM *meram;
 	int ret;
 	static struct reserved_address *reserved_mem;
+	static struct ipmmui_settings *ipmmui_config;
 
 	meram = calloc(1, sizeof(*meram));
 	if (!meram)
@@ -60,7 +33,7 @@ MERAM *meram_open(void)
 	if (uiomux == NULL) {
 		uiomux = uiomux_open_named(uios);
 	}
-	make_reserved_addr_list(CONFIG_FILE, &reserved_mem);
+	parse_config_file(CONFIG_FILE, &reserved_mem, &ipmmui_config);
 	pthread_mutex_unlock(&uiomux_mutex);
 
 	if (!uiomux)
@@ -80,12 +53,13 @@ MERAM *meram_open(void)
 		if (ref_count == 1) {
 			uiomux_close(uiomux);
 			uiomux = NULL;
-		}	
+		}
 		pthread_mutex_unlock(&uiomux_mutex);
 		/*TODO: check ref count*/
-		return NULL;	
+		return NULL;
 	}
 	meram->reserved_mem = reserved_mem;
+	meram->ipmmui_config = ipmmui_config;
 	return meram;
 }
 
@@ -97,7 +71,8 @@ void meram_close(MERAM *meram)
 		uiomux_close(uiomux);
 		uiomux = NULL;
 		delete_reserved_addr_list(meram->reserved_mem);
-	}	
+		delete_ipmmui_settings(meram->ipmmui_config);
+	}
 	pthread_mutex_unlock(&uiomux_mutex);
 	free(meram);
 }
@@ -114,7 +89,7 @@ ICB *meram_lock_icb(MERAM *meram, int index)
 	icb->offset = 0x400 + index * 0x20;
 	icb->len = 0x20;
 	icb->index = index;
-#ifdef EXPERIMENTAL	
+#ifdef EXPERIMENTAL
 	if (uiomux_partial_lock(meram->uiomux, UIOMUX_SH_MERAM,
 		icb->lock_offset, icb->len) < 0) {
 		free (icb);
@@ -122,25 +97,25 @@ ICB *meram_lock_icb(MERAM *meram, int index)
 	}
 #endif
 	icb->locked = 1;
-	return icb; 
+	return icb;
 }
 
 
 void meram_unlock_icb(MERAM *meram, ICB *icb)
 {
 	/*partial uiomux unlock*/
-	icb->locked = 0;
 #ifdef EXPERIMENTAL
 	uiomux_partial_unlock(meram->uiomux, UIOMUX_SH_MERAM,
 		icb->lock_offset, icb->len);
 #endif
-	free(icb);	
+	icb->locked = 0;
+	free(icb);
 }
 
 MERAM_REG *meram_lock_reg(MERAM *meram)
 {
 	MERAM_REG *meram_reg;
-	
+
 	meram_reg = calloc (1, sizeof (MERAM_REG));
 	/*offset and size determination*/
 	meram_reg->offset = 0;
@@ -153,7 +128,7 @@ MERAM_REG *meram_lock_reg(MERAM *meram)
 void meram_unlock_reg(MERAM *meram, MERAM_REG *meram_reg)
 {
 	uiomux_unlock(meram->uiomux, UIOMUX_SH_MERAM);
-	free(meram_reg);	
+	free(meram_reg);
 }
 int meram_alloc_memory_block(MERAM *meram, int size)
 {
@@ -162,16 +137,16 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 	struct reserved_address *current;
 	current = meram->reserved_mem;
 	/* uiomux_malloc has minimum 1 page (4k) alignment*/
-	while (!alloc_ptr) {	
+	while (!alloc_ptr) {
 		alloc_ptr = uiomux_malloc(meram->uiomux, UIOMUX_SH_MERAM,
 			alloc_size, 1024);
-		if (!alloc_ptr) 
+		if (!alloc_ptr)
 			return -1;
 		current = meram->reserved_mem;
 		while (current) {
 			unsigned long alloc_beg = (unsigned long)
 				(alloc_ptr - meram->mem_vaddr);
-			unsigned long alloc_end = alloc_beg + alloc_size - 
+			unsigned long alloc_end = alloc_beg + alloc_size -
 				(1 << 10);
 			unsigned long cur_beg = current->start_block << 10;
 			unsigned long cur_end = current->end_block << 10;
@@ -184,16 +159,11 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 				continue;
 			}
 			if (alloc_beg < cur_beg) {
-				fprintf(stderr, "1 Freeing %x bytes at %p\n",
-					cur_beg - alloc_beg, alloc_ptr);
 				uiomux_free(meram->uiomux, UIOMUX_SH_MERAM,
 					alloc_ptr,
 					cur_beg - alloc_beg);
 			}
 			if (alloc_end > cur_end) {
-				fprintf(stderr, "2 Freeing %x bytes at %p\n",
-					alloc_end - cur_end,
-					meram->mem_vaddr + cur_end);
 				uiomux_free(meram->uiomux, UIOMUX_SH_MERAM,
 					meram->mem_vaddr + cur_end +
 					(1 << 10), alloc_end - cur_end);
@@ -202,7 +172,7 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 			break;
 		}
 	}
-		
+
 	return ((unsigned long) (alloc_ptr - meram->mem_vaddr)) >> 10;
 }
 void meram_free_memory_block(MERAM *meram, int offset, int size)
@@ -238,7 +208,7 @@ void meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 
 unsigned long
 meram_get_icb_address(MERAM *meram, ICB *icb, int ab) {
-	if (icb) 
+	if (icb)
 		return (0xC0000000 | ((ab & 1) << 23) |
 				((icb->index & 0x1F) << 24));
 	return 0;
@@ -247,10 +217,13 @@ meram_get_icb_address(MERAM *meram, ICB *icb, int ab) {
 #define TOKENS " \t"
 #define LINE_LEN 255
 int
-make_reserved_addr_list(char *infile, struct reserved_address **head)
+parse_config_file(char *infile,
+	struct reserved_address **add_head,
+	struct ipmmui_settings **ipmmui_head)
 {
 	int len = LINE_LEN;
-	struct reserved_address *current = NULL, *prev;
+	struct reserved_address *add_current = NULL, *add_prev;
+	struct ipmmui_settings *ipmmui_current = NULL, *ipmmui_prev;
 	int i, num_fields;
 	char **fields;
 	FILE *cfg_file;
@@ -259,7 +232,7 @@ make_reserved_addr_list(char *infile, struct reserved_address **head)
 	char *id;
 
 	cfg_file = fopen (infile, "r");
-	if (!cfg_file) 
+	if (!cfg_file)
 		return -1;
 
 	while (fgets(linedata, len, cfg_file)) {
@@ -270,39 +243,60 @@ make_reserved_addr_list(char *infile, struct reserved_address **head)
 		}
 		if (!strcmp(id, "reserved")) {
 			num_fields = 2;
-			fields = calloc (num_fields, sizeof (char *));
-			for (i = 0; i < num_fields; i++) {
-				if (!(fields[i] = strtok(NULL, TOKENS))) {
-					fprintf(stderr, "Line %d: "
-						"Invalid data\n", line_cnt);
-					fclose(cfg_file);
-					return -1;			
-				}
-			}
-			if (strtok(NULL, TOKENS)) {
-				fprintf(stderr, "Line %d: Too few tokens\n",
-					line_cnt);
+		} else if (!strcmp(id, "ipmmui")) {
+			num_fields = 3;
+		} else
+			continue;
+
+		fields = calloc (num_fields, sizeof (char *));
+		for (i = 0; i < num_fields; i++) {
+			if (!(fields[i] = strtok(NULL, TOKENS))) {
+				fprintf(stderr, "Line %d: "
+					"Invalid data\n", line_cnt);
 				fclose(cfg_file);
-				return -1;			
+				return -1;
 			}
-			if (!current) 
-				current = *head = calloc (1, 
+		}
+		if (strtok(NULL, TOKENS)) {
+			fprintf(stderr, "Line %d: Too few tokens\n",
+				line_cnt);
+			fclose(cfg_file);
+			return -1;
+		}
+		if (!strcmp(id, "reserved")) {
+			if (!add_current)
+				add_current = *add_head = calloc (1,
 					sizeof (struct reserved_address));
 			else {
-				current = calloc (1, 
+				add_current = calloc (1,
 					sizeof (struct reserved_address));
-				prev->next = current;
+				add_prev->next = add_current;
 			}
-			current->start_block = atoi(fields[0]);
-			current->end_block = atoi(fields[1]);
-			current->next = NULL;
-			prev = current;
+			add_current->start_block = atoi(fields[0]);
+			add_current->end_block = atoi(fields[1]);
+			add_current->next = NULL;
+			add_prev = add_current;
+		} else if (!strcmp(id, "ipmmui")) {
+			if (!ipmmui_current)
+				ipmmui_current = *ipmmui_head = calloc (1,
+					sizeof (struct reserved_address));
+			else {
+				ipmmui_current = calloc (1,
+					sizeof (struct reserved_address));
+				ipmmui_prev->next = ipmmui_current;
+			}
+			ipmmui_current->tag = strdup(fields[0]);
+			ipmmui_current->vaddr = strtoul(fields[1], NULL, 0);
+			ipmmui_current->size = atoi(fields[2]);
+			ipmmui_current->next = NULL;
+			ipmmui_prev = ipmmui_current;
 		}
 		line_cnt ++;
 	}
 	fclose(cfg_file);
 	return 0;
 }
+
 void
 delete_reserved_addr_list(struct reserved_address *head)
 {
@@ -310,6 +304,17 @@ delete_reserved_addr_list(struct reserved_address *head)
 	while (head) {
 		next = head->next;
 		free(head);
-		head = next;	
+		head = next;
+	}
+}
+
+void
+delete_ipmmui_settings(struct ipmmui_settings *head)
+{
+	struct ipmmui_settings *next = head;
+	while (head) {
+		next = head->next;
+		free(head);
+		head = next;
 	}
 }
