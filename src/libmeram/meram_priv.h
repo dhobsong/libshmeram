@@ -20,6 +20,8 @@ struct ICB {
 	unsigned long offset;
 	unsigned long lock_offset;
 	unsigned long len;
+	int mem_block;
+	int mem_size;
 	int index;
 };
 

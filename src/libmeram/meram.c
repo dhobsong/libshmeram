@@ -89,6 +89,7 @@ ICB *meram_lock_icb(MERAM *meram, int index)
 	icb->offset = 0x400 + index * 0x20;
 	icb->len = 0x20;
 	icb->index = index;
+	icb->mem_block = icb->mem_size = -1;
 #ifdef EXPERIMENTAL
 	if (uiomux_partial_lock(meram->uiomux, UIOMUX_SH_MERAM,
 		icb->lock_offset, icb->len) < 0) {
@@ -109,6 +110,7 @@ void meram_unlock_icb(MERAM *meram, ICB *icb)
 		icb->lock_offset, icb->len);
 #endif
 	icb->locked = 0;
+	meram_free_icb_memory(meram, icb);
 	free(icb);
 }
 
@@ -180,6 +182,24 @@ void meram_free_memory_block(MERAM *meram, int offset, int size)
 	int alloc_size = size << 10;
 	void *alloc_ptr = meram->mem_vaddr + (offset << 10);
 	uiomux_free(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
+}
+
+int meram_alloc_icb_memory(MERAM *meram, ICB *icb, int size)
+{
+	if (!meram || !icb)
+		return -1;
+	icb->mem_block = meram_alloc_memory_block(meram, size);
+	if (icb->mem_block >= 0)
+		icb->mem_size = size;
+	return icb->mem_block;
+}
+
+void meram_free_icb_memory(MERAM *meram, ICB *icb)
+{
+	if (!meram || !icb || icb->mem_block < 0 || icb->mem_size < 0)
+		return;
+	meram_free_memory_block(meram, icb->mem_block, icb->mem_size);
+	icb->mem_block = icb->mem_size = -1;
 }
 
 void meram_read_icb(MERAM *meram, ICB *icb, int offset,

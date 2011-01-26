@@ -102,11 +102,34 @@ MERAM_REG *meram_lock_reg(MERAM *meram);
   */
 void meram_unlock_reg(MERAM *meram, MERAM_REG *meram_reg);
 
+/** Allocate MERAM memory blocks and associate with an ICB
+  * The library will keep track of which memory has been allocated
+  * and can be free with meram_free_icb_meram
+  * \param meram MERAM handle
+  * \param icb ICB handle
+  * \param size size of block to allocate in 1K units (e.g. 4 = 4K)
+  * \retval -1 Failure, otherwise offset of allocated block
+	(range = 0 to 1535)
+  */
+int meram_alloc_icb_memory(MERAM *meram, ICB *icb, int size);
+
 /**
-  * Allocate MERAM internal memory
+  * Free MERAM internal memory
+  * \param meram MERAM handle
+  * \param icb ICB handle for which memory has been allocated with
+  *            meram_alloc_icb_memory
+  */
+void meram_free_icb_memory(MERAM *meram, ICB *icb);
+
+/**
+  * Directly allocte MERAM internal memory
+  *   Using this method the applicatin is responsible for keeping
+  *   track of which memory has been allocated for propler freeing
+  *   with meram_free_memory_block
   * \param meram MERAM handle
   * \param size size of block to allocate in 1K units (e.g. 4 = 4K)
-  * \retval -1 Failure, otherwise offset of allocated block (range = 0 to 1535)
+  * \retval -1 Failure, otherwise offset of allocated block
+	(range = 0 to 1535)
   */
 int meram_alloc_memory_block(MERAM *meram, int size);
 
