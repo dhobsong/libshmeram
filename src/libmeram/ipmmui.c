@@ -1,10 +1,13 @@
 #include <meram/meram.h>
 #include <meram/ipmmui.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <uiomux/uiomux.h>
 #include "meram_priv.h"
+
+typedef uint8_t u8;
 
 IPMMUI *ipmmui_open(void)
 {
@@ -40,6 +43,8 @@ IPMMUI *ipmmui_open(void)
 
 void ipmmui_close(IPMMUI *ipmmui)
 {
+	if (!ipmmui)
+		return;
 	meram_close(ipmmui->meram);
 	free(ipmmui);
 }
@@ -81,6 +86,8 @@ void ipmmui_unlock_pmb(IPMMUI *ipmmui, PMB *pmb)
 IPMMUI_REG *ipmmui_lock_reg(IPMMUI *ipmmui)
 {
 	IPMMUI_REG *ipmmui_reg;
+	if (!ipmmui)
+		return NULL;
 
 	ipmmui_reg = calloc (1, sizeof (*ipmmui_reg));
 	/*offset and size determination*/
@@ -94,29 +101,48 @@ IPMMUI_REG *ipmmui_lock_reg(IPMMUI *ipmmui)
 
 void ipmmui_unlock_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg)
 {
+	if (!ipmmui)
+		return;
 	uiomux_unlock(ipmmui->uiomux, UIOMUX_SH_IPMMUI);
 	free(ipmmui_reg);
 }
 void ipmmui_read_pmb(IPMMUI *ipmmui, PMB *pmb, int offset,
 		unsigned long *read_val)
 {
-	volatile unsigned long *reg = ipmmui->vaddr + pmb->offset + offset;
+	volatile unsigned long *reg;
+	if (!ipmmui || !pmb)
+		return;
+	reg = (unsigned long *) ((u8 *) ipmmui->vaddr + pmb->offset + offset);
 	*read_val = *reg;
 }
 void ipmmui_write_pmb(IPMMUI *ipmmui, PMB *pmb, int offset, unsigned long val)
 {
-	volatile unsigned long *reg = ipmmui->vaddr + pmb->offset + offset;
+	volatile unsigned long *reg;
+	if (!ipmmui || !pmb)
+		return;
+	reg = (unsigned long *) ((u8 *) ipmmui->vaddr + pmb->offset + offset);
 	*reg = val;
 }
 void ipmmui_read_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
 		unsigned long *read_val)
 {
-	volatile unsigned long *reg = ipmmui->vaddr + ipmmui_reg->offset + offset;
+	volatile unsigned long *reg;
+	if (!ipmmui || !ipmmui_reg)
+		return;
+
+	reg = (unsigned long *) ((u8 *) ipmmui->vaddr + ipmmui_reg->offset +
+		offset);
 	*read_val = *reg;
 }
 void ipmmui_write_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
 		unsigned long val)
 {
-	volatile unsigned long *reg = ipmmui->vaddr + ipmmui_reg->offset + offset;
+	volatile unsigned long *reg;
+	if (!ipmmui || !ipmmui_reg)
+		return;
+
+        reg = (unsigned long *) ((u8 *) ipmmui->vaddr +
+		ipmmui_reg->offset + offset);
+
 	*reg = val;
 }
