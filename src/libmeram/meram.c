@@ -299,10 +299,10 @@ parse_config_file(char *infile,
 		} else if (!strcmp(id, "ipmmui")) {
 			if (!ipmmui_current)
 				ipmmui_current = *ipmmui_head = calloc (1,
-					sizeof (struct reserved_address));
+					sizeof (struct ipmmui_settings));
 			else {
 				ipmmui_current = calloc (1,
-					sizeof (struct reserved_address));
+					sizeof (struct ipmmui_settings));
 				ipmmui_prev->next = ipmmui_current;
 			}
 			ipmmui_current->tag = strdup(fields[0]);
