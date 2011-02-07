@@ -200,6 +200,7 @@ include/meram/Makefile
 src/Makefile
 src/libmeram/Version_script
 src/libmeram/Makefile
+config_data/Makefile
 meram.pc
 meram-uninstalled.pc
 ])
