@@ -242,8 +242,8 @@ parse_config_file(char *infile,
 	struct ipmmui_settings **ipmmui_head)
 {
 	int len = LINE_LEN;
-	struct reserved_address *add_current = NULL, *add_prev;
-	struct ipmmui_settings *ipmmui_current = NULL, *ipmmui_prev;
+	struct reserved_address *add_current = NULL, *add_prev = NULL;
+	struct ipmmui_settings *ipmmui_current = NULL, *ipmmui_prev = NULL;
 	int i, num_fields;
 	char **fields;
 	FILE *cfg_file;
