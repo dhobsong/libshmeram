@@ -106,43 +106,47 @@ void ipmmui_unlock_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg)
 	uiomux_unlock(ipmmui->uiomux, UIOMUX_SH_IPMMUI);
 	free(ipmmui_reg);
 }
-void ipmmui_read_pmb(IPMMUI *ipmmui, PMB *pmb, int offset,
+int ipmmui_read_pmb(IPMMUI *ipmmui, PMB *pmb, int offset,
 		unsigned long *read_val)
 {
 	volatile unsigned long *reg;
 	if (!ipmmui || !pmb)
-		return;
+		return -1;
 	reg = (unsigned long *) ((u8 *) ipmmui->vaddr + pmb->offset + offset);
 	*read_val = *reg;
+	return 0;
 }
-void ipmmui_write_pmb(IPMMUI *ipmmui, PMB *pmb, int offset, unsigned long val)
+int ipmmui_write_pmb(IPMMUI *ipmmui, PMB *pmb, int offset, unsigned long val)
 {
 	volatile unsigned long *reg;
 	if (!ipmmui || !pmb)
-		return;
+		return -1;
 	reg = (unsigned long *) ((u8 *) ipmmui->vaddr + pmb->offset + offset);
 	*reg = val;
+	return 0;
 }
-void ipmmui_read_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
+int ipmmui_read_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
 		unsigned long *read_val)
 {
 	volatile unsigned long *reg;
 	if (!ipmmui || !ipmmui_reg)
-		return;
+		return -1;
 
 	reg = (unsigned long *) ((u8 *) ipmmui->vaddr + ipmmui_reg->offset +
 		offset);
 	*read_val = *reg;
+	return 0;
 }
-void ipmmui_write_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
+int ipmmui_write_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
 		unsigned long val)
 {
 	volatile unsigned long *reg;
 	if (!ipmmui || !ipmmui_reg)
-		return;
+		return -1;
 
         reg = (unsigned long *) ((u8 *) ipmmui->vaddr +
 		ipmmui_reg->offset + offset);
 
 	*reg = val;
+	return 0;
 }

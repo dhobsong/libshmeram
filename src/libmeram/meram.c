@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <uiomux/uiomux.h>
+#include <stdint.h>
 #include "meram_priv.h"
+
+typedef uint8_t u8;
 
 static UIOMux *uiomux = NULL;
 static pthread_mutex_t uiomux_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -202,28 +205,46 @@ void meram_free_icb_memory(MERAM *meram, ICB *icb)
 	icb->mem_block = icb->mem_size = -1;
 }
 
-void meram_read_icb(MERAM *meram, ICB *icb, int offset,
+int meram_read_icb(MERAM *meram, ICB *icb, int offset,
 		unsigned long *read_val)
 {
-	volatile unsigned long *reg = meram->vaddr + icb->offset + offset;
+	volatile unsigned long *reg;
+	if (!meram || !icb)
+		return -1;
+	reg = (unsigned long *) ((u8 *)meram->vaddr + icb->offset + offset);
 	*read_val = *reg;
+	return 0;
 }
-void meram_write_icb(MERAM *meram, ICB *icb, int offset, unsigned long val)
+int meram_write_icb(MERAM *meram, ICB *icb, int offset, unsigned long val)
 {
-	volatile unsigned long *reg = meram->vaddr + icb->offset + offset;
+	volatile unsigned long *reg;
+	if (!meram || !icb)
+		return -1;
+	reg = (unsigned long *) ((u8 *)meram->vaddr + icb->offset + offset);
 	*reg = val;
+	return 0;
 }
-void meram_read_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
+int meram_read_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 		unsigned long *read_val)
 {
-	volatile unsigned long *reg = meram->vaddr + meram_reg->offset + offset;
+	volatile unsigned long *reg;
+	if (!meram || !meram_reg)
+		return -1;
+	reg = (unsigned long *) ((u8 *)meram->vaddr + meram_reg->offset +
+		offset);
 	*read_val = *reg;
+	return 0;
 }
-void meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
+int meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 		unsigned long val)
 {
-	volatile unsigned long *reg = meram->vaddr + meram_reg->offset + offset;
+	volatile unsigned long *reg;
+	if (!meram || !meram_reg)
+		return -1;
+	reg = (unsigned long *) ((u8 *)meram->vaddr + meram_reg->offset +
+		offset);
 	*reg = val;
+	return 0;
 }
 
 unsigned long

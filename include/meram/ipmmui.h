@@ -99,9 +99,11 @@ void ipmmui_unlock_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg);
   * \param ipmmui IPMMUI handle
   * \param pmb handle to PMB
   * \param offset address offset within PMB register block
-  * \retval read data
+  * \param read_val pointer to store read result data
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void ipmmui_read_pmb(IPMMUI *ipmmui, PMB *pmb, int offset,
+int ipmmui_read_pmb(IPMMUI *ipmmui, PMB *pmb, int offset,
 		unsigned long *read_val);
 
 /**
@@ -110,17 +112,21 @@ void ipmmui_read_pmb(IPMMUI *ipmmui, PMB *pmb, int offset,
   * \param pmb handle to PMB
   * \param offset address offset within PMB register block
   * \param val data to write
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void ipmmui_write_pmb(IPMMUI *ipmmui, PMB *pmb, int offset, unsigned long val);
+int ipmmui_write_pmb(IPMMUI *ipmmui, PMB *pmb, int offset, unsigned long val);
 
 /**
   * Read data from IPMMUI common register
   * \param ipmmui IPMMUI handle
   * \param ipmmui_reg handle to common registers
   * \param offset address offset within PMB register block
-  * \retval read data
+  * \param read_val pointer to store read result data
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void ipmmui_read_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
+int ipmmui_read_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
 		unsigned long *read_val);
 
 /**
@@ -129,8 +135,10 @@ void ipmmui_read_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
   * \param ipmmui_reg handle to common registers
   * \param offset address offset within PMB register block
   * \param val data to write
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void ipmmui_write_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
+int ipmmui_write_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
 		unsigned long val);
 
 /**
