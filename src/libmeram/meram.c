@@ -35,12 +35,14 @@ MERAM *meram_open(void)
 	ref_count++;
 	if (uiomux == NULL) {
 		uiomux = uiomux_open_named(uios);
+		parse_config_file(CONFIG_FILE, &reserved_mem, &ipmmui_config);
 	}
-	parse_config_file(CONFIG_FILE, &reserved_mem, &ipmmui_config);
 	pthread_mutex_unlock(&uiomux_mutex);
 
-	if (!uiomux)
+	if (!uiomux) {
+		free(meram);
 		return NULL;
+	}
 	meram->uiomux = uiomux;
 	ret = uiomux_get_mmio(uiomux, UIOMUX_SH_MERAM,
 		&meram->paddr,
@@ -59,6 +61,7 @@ MERAM *meram_open(void)
 		}
 		pthread_mutex_unlock(&uiomux_mutex);
 		/*TODO: check ref count*/
+		free(meram);
 		return NULL;
 	}
 	meram->reserved_mem = reserved_mem;
