@@ -15,4 +15,5 @@ LOCAL_SHARED_LIBRARIES := libcutils libuiomux
 
 LOCAL_MODULE := libmeram
 LOCAL_PRELINK_MODULE := false
+LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)
