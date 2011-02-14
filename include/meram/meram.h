@@ -68,17 +68,17 @@ void meram_close(MERAM *meram);
 
 /**
   * Lock access to a MERAM ICB registers
-  * The application should hold this lock for as long as it will use 
+  * The application should hold this lock for as long as it will use
   * the specified ICB.
   * \param meram MERAM handle
   * \param index index of the ICB to lock
-  * \retval 0 Failure, otherwise handle to the locked ICB 
+  * \retval 0 Failure, otherwise handle to the locked ICB
   */
 ICB *meram_lock_icb(MERAM *meram, int index);
 
 /**
   * Unlock a MERAM ICB registers when no longer needed
-  * The application should unlock the ICB only after is has finished 
+  * The application should unlock the ICB only after is has finished
   * using it. (i.e. after configuration AND data transfer)
   * \param meram MERAM handle
   * \param icb ICB handle
@@ -87,14 +87,14 @@ void meram_unlock_icb(MERAM *meram, ICB *icb);
 
 /**
   * Lock access to MERAM common registers
-  * The application should only hold this lock when accessing the registers 
+  * The application should only hold this lock when accessing the registers
   * \param meram MERAM handle
   * \retval 0 Failure, otherwise handle to the locked registers
   */
 MERAM_REG *meram_lock_reg(MERAM *meram);
 
 /**
-  * Unlock MERAM common registers 
+  * Unlock MERAM common registers
   * The application should unlock the registers immediately after
   * accessing them, so that other applications may access them
   * \param meram MERAM handle
@@ -146,9 +146,11 @@ void meram_free_memory_block(MERAM *meram, int offset, int size);
   * \param meram MERAM handle
   * \param icb handle to ICB
   * \param offset address offset within ICB register block
-  * \retval read data
+  * \param read_val pointer to store read result data
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void meram_read_icb(MERAM *meram, ICB *icb, int offset,
+int meram_read_icb(MERAM *meram, ICB *icb, int offset,
 		unsigned long *read_val);
 
 /**
@@ -156,18 +158,22 @@ void meram_read_icb(MERAM *meram, ICB *icb, int offset,
   * \param meram MERAM handle
   * \param icb handle to ICB
   * \param offset address offset within ICB register block
-  * \param val data to write 
+  * \param val data to write
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void meram_write_icb(MERAM *meram, ICB *icb, int offset, unsigned long val);
+int meram_write_icb(MERAM *meram, ICB *icb, int offset, unsigned long val);
 
 /**
   * Read data from MERAM common register
   * \param meram MERAM handle
   * \param meram_reg handle to common registers
   * \param offset address offset within ICB register block
-  * \retval read data
+  * \param read_val pointer to store read result data
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void meram_read_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
+int meram_read_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 		unsigned long *read_val);
 
 /**
@@ -175,9 +181,11 @@ void meram_read_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
   * \param meram MERAM handle
   * \param meram_reg handle to common registers
   * \param offset address offset within ICB register block
-  * \param val data to write 
+  * \param val data to write
+  * \retval -1 Failure
+  * 	     0 Success
   */
-void meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
+int meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
 		unsigned long val);
 
 /**

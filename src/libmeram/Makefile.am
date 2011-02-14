@@ -16,6 +16,6 @@ libmeram_la_SOURCES = \
 	ipmmui.c \
 	meram_priv.h
 
-libmeram_la_CFLAGS = $(UIOMUX_CFLAGS) -DCONFIG_FILE=\"/etc/meram.conf\"
+libmeram_la_CFLAGS = $(UIOMUX_CFLAGS) -DCONFIG_FILE=\"${prefix}/etc/meram.conf\"
 libmeram_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 libmeram_la_LIBADD = $(UIOMUX_LIBS)
