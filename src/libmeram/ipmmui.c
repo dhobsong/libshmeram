@@ -51,7 +51,7 @@ void ipmmui_close(IPMMUI *ipmmui)
 
 int
 ipmmui_get_vaddr(IPMMUI *ipmmui,
-		 char *tag,
+		 const char *tag,
 		 unsigned long *vaddr,
 		 int *size)
 {

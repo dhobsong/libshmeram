@@ -152,7 +152,7 @@ int ipmmui_write_reg(IPMMUI *ipmmui, IPMMUI_REG *ipmmui_reg, int offset,
   */
 int
 ipmmui_get_vaddr(IPMMUI *ipmmui,
-		 char *tag,
+		 const char *tag,
 		 unsigned long *vaddr,
 		 int *size);
 #ifdef __cplusplus
