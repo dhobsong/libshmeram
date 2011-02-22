@@ -153,7 +153,7 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 		current = meram->reserved_mem;
 		while (current) {
 			unsigned long alloc_beg = (unsigned long)
-				(alloc_ptr - meram->mem_vaddr);
+				((u8 *) alloc_ptr - (u8 *) meram->mem_vaddr);
 			unsigned long alloc_end = alloc_beg + alloc_size -
 				(1 << 10);
 			unsigned long cur_beg = current->start_block << 10;
@@ -173,7 +173,7 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 			}
 			if (alloc_end > cur_end) {
 				uiomux_free(meram->uiomux, UIOMUX_SH_MERAM,
-					meram->mem_vaddr + cur_end +
+					(u8 *)meram->mem_vaddr + cur_end +
 					(1 << 10), alloc_end - cur_end);
 			}
 			alloc_ptr = NULL;
@@ -181,12 +181,13 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 		}
 	}
 
-	return ((unsigned long) (alloc_ptr - meram->mem_vaddr)) >> 10;
+	return ((unsigned long) ((u8 *)alloc_ptr -
+			(u8 *)meram->mem_vaddr)) >> 10;
 }
 void meram_free_memory_block(MERAM *meram, int offset, int size)
 {
 	int alloc_size = size << 10;
-	void *alloc_ptr = meram->mem_vaddr + (offset << 10);
+	void *alloc_ptr = (u8 *) meram->mem_vaddr + (offset << 10);
 	uiomux_free(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
 }
 
