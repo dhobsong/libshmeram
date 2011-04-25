@@ -23,7 +23,7 @@ AC_CONFIG_SRCDIR([src/libmeram/meram.c])
 
 AC_PREREQ(2.53)
 
-AM_INIT_AUTOMAKE(libmeram, 1.0.0)
+AM_INIT_AUTOMAKE(libmeram, 0.9.0)
 AM_CONFIG_HEADER(config.h)
 
 ################################################################################
