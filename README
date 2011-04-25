@@ -19,6 +19,24 @@ This source archive contains:
 libmeram API
 ------------
 
+Compilation
+-----------
+
+# autoreconf -vif
+# ./configure (for cross compile add '--host=arm-linux-gnueabi')
+# make
+
+Installation
+------------
+# make install
+
+* libmeram requires a 'meram.conf' file to operate. This file will be
+  automatically created in '(root dir)/etc', but may need to be copied to
+  a target rootfs if using cross-compilation, i.e:
+
+# cp (root dir)/etc/meram.conf (target rootfs)/etc
+
+
 SH-Mobile
 ---------
 [0]: http://www.renesas.com/fmwk.jsp?cnt=sh_mobile_family_landing.jsp&fp=/products/mpumcu/sh_mobile/
