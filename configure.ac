@@ -111,6 +111,9 @@ dnl Check for libuiomux
 dnl
 PKG_CHECK_MODULES(UIOMUX, uiomux >= 1.5.2)
 
+dnl Overall configuration success flag
+meram_config_ok=yes
+
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
