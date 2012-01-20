@@ -23,18 +23,18 @@
 extern "C" {
 #endif
 
-#define MExxCTL 0x0
-#define MExxSIZE 0x4
-#define MExxMNCF 0x8
-#define MExxSARA 0x10
-#define MExxSARB 0x14
-#define MExxBSIZE 0x18
-#define MSAR_OFF 0x3C0
+#define MExxCTRL	0x0
+#define MExxBSIZE	0x4
+#define MExxMCNF	0x8
+#define MExxSSARA	0x10
+#define MExxSSARB	0x14
+#define MExxSBSIZE	0x18
+#define MSAR_OFF	0x3C0
 
-#define MEVCR1 0x4
-#define MEACTS 0x10
-#define MEQSEL1 0x40
-#define MEQSEL2 0x44
+#define MEVCR1		0x4
+#define MEACTS		0x10
+#define MEQSEL1		0x40
+#define MEQSEL2		0x44
 
 /** \file
   * The libmeram C API
