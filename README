@@ -1,7 +1,7 @@
-libmeram
+libshmeram
 ===========
 
-libmeram: A library for accessing the SH-Mobile MERAM
+libshmeram: A library for accessing the SH-Mobile MERAM
 
 Copyright (C) 2011 Igel Co., Ltd.
 Copyright (C) 2011 Renesas Electronics Corporation
@@ -14,9 +14,9 @@ blocks.
 
 This source archive contains:
 
- * src/libmeram: the libmeram shared library
+ * src/libshmeram: the libshmeram shared library
 
-libmeram API
+libshmeram API
 ------------
 
 Compilation
@@ -30,7 +30,7 @@ Installation
 ------------
 # make install
 
-* libmeram requires a 'meram.conf' file to operate. This file will be
+* libshmeram requires a 'meram.conf' file to operate. This file will be
   automatically created in '(root dir)/etc', but may need to be copied to
   a target rootfs if using cross-compilation, i.e:
 
@@ -44,7 +44,7 @@ SH-Mobile
 Kernel configuration
 --------------------
 
-libmeram uses the Linux kernel UIO support for the SH-Mobile MERAM, which was
+libshmeram uses the Linux kernel UIO support for the SH-Mobile MERAM, which was
 added in 2.6.27.
 
 License

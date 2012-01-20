@@ -1,5 +1,5 @@
 ################################################################################
-# libmeram: A library for acessing SH-Mobile MERAM hardware                    #
+# libshmeram: A library for acessing SH-Mobile MERAM hardware                  #
 # Copyright (C) 2011 Renesas Electronics Corporation                           #
 #                                                                              #
 # This library is free software; you can redistribute it and/or                #
@@ -19,7 +19,7 @@
 
 # Process this file with autoconf to produce a configure script.
 AC_INIT
-AC_CONFIG_SRCDIR([src/libmeram/meram.c])
+AC_CONFIG_SRCDIR([src/libshmeram/meram.c])
 
 AC_PREREQ(2.53)
 
@@ -198,8 +198,8 @@ doc/Doxyfile
 include/Makefile
 include/meram/Makefile
 src/Makefile
-src/libmeram/Version_script
-src/libmeram/Makefile
+src/libshmeram/Version_script
+src/libshmeram/Makefile
 config_data/Makefile
 meram.pc
 meram-uninstalled.pc

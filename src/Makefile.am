@@ -1,1 +1,1 @@
-SUBDIRS = libmeram
+SUBDIRS = libshmeram
