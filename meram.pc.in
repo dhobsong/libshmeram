@@ -7,6 +7,6 @@ Name: meram
 Description: A library for controlling SH-Mobile MERAM
 Requires:
 Version: @VERSION@
-Libs: -L${libdir} -lmeram
+Libs: -L${libdir} -lshmeram
 Libs.private:
 Cflags: -I${includedir}
