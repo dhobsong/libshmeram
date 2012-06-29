@@ -23,7 +23,7 @@ AC_CONFIG_SRCDIR([src/libshmeram/meram.c])
 
 AC_PREREQ(2.53)
 
-AM_INIT_AUTOMAKE(libshmeram, 0.9.1)
+AM_INIT_AUTOMAKE(libshmeram, 0.9.2)
 AM_CONFIG_HEADER(config.h)
 
 ################################################################################
