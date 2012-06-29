@@ -16,7 +16,7 @@ static int ref_count = 0;
 
 static const char *uios[] = {
 	"MERAM",
-	"IPMMUI",
+	"IPMMU",
 	NULL
 };
 
