@@ -23,7 +23,7 @@ AC_CONFIG_SRCDIR([src/libshmeram/meram.c])
 
 AC_PREREQ(2.53)
 
-AM_INIT_AUTOMAKE(libshmeram, 0.9.2)
+AM_INIT_AUTOMAKE(libshmeram, 0.9.3)
 AM_CONFIG_HEADER(config.h)
 
 ################################################################################
@@ -43,7 +43,7 @@ AM_CONFIG_HEADER(config.h)
 #     then set AGE to 0.                                                       #
 #                                                                              #
 ################################################################################
-SHARED_VERSION_INFO="1:0:0"
+SHARED_VERSION_INFO="2:0:1"
 SHLIB_VERSION_ARG=""
 
 # Checks for programs.

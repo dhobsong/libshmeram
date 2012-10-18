@@ -1,0 +1,28 @@
+libshmeram
+===========
+
+libshmeram: A library for accessing the SH-Mobile MERAM
+
+Copyright (C) 2011 Igel Co., Ltd.
+Copyright (C) 2011 Renesas Electronics Corporation
+
+The [SH-Mobile][0] processor series includes a memory caching unit for media
+access from the devices various hardware blocks, including VEU, VPU, JPU, etc.
+The memory caching unit can read-ahead and write-back access to the system
+memory as well as local storage for data being transferred between two media
+blocks.
+
+New in this release
+-------------------
+
+Add a new API to clear the MERAM contents
+Update IPMMU uio device name
+
+Changes
+-------
+Katsuya Matsubara (1):
+      Add meram_fill_memory_block
+
+Kazunori Kobayashi (1):
+      meram: match IPMMU uio definition name to kernel
+
