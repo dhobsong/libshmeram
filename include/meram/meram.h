@@ -142,6 +142,15 @@ int meram_alloc_memory_block(MERAM *meram, int size);
 void meram_free_memory_block(MERAM *meram, int offset, int size);
 
 /**
+  * Fill MERAM internal memory with a value
+  * \param meram MERAM handle
+  * \param offset offset of the allocated block
+  * \param n_blocks number of blocks to allocate in 1K units (e.g. 4 = 4K)
+  * \param value value with which blocks will be filled
+  */
+void meram_fill_memory_block(MERAM *meram, int offset, int n_blocks, unsigned int value);
+
+/**
   * Read data from MERAM ICB register
   * \param meram MERAM handle
   * \param icb handle to ICB

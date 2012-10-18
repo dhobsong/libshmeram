@@ -191,6 +191,18 @@ void meram_free_memory_block(MERAM *meram, int offset, int size)
 	uiomux_free(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
 }
 
+void meram_fill_memory_block(MERAM *meram, int offset,
+			     int n_blocks, unsigned int val)
+{
+	unsigned int bytes = n_blocks << 10;
+	unsigned long *ptr32 = (unsigned int *)
+		((u8 *) meram->mem_vaddr + (offset << 10));
+	unsigned int i;
+
+	for (i=0; i< bytes/sizeof(unsigned long); i++)
+		*(ptr32 + i) = val;
+}
+
 int meram_alloc_icb_memory(MERAM *meram, ICB *icb, int size)
 {
 	if (!meram || !icb)
