@@ -122,6 +122,27 @@ int meram_alloc_icb_memory(MERAM *meram, ICB *icb, int size);
 void meram_free_icb_memory(MERAM *meram, ICB *icb);
 
 /**
+  * Directly lock MERAM internal memory
+  *   Using this method the applicatin is responsible for keeping
+  *   track of which memory has been locked for proper unlocking
+  *   with meram_unlock_memory_block
+  * \param meram MERAM handle
+  * \param offset offset of block to lock
+  * \param size size of block to lock in 1K units (e.g. 4 = 4K)
+  * \retval -1 Failure
+  * 	     0 Success
+  */
+int meram_lock_memory_block(MERAM *meram, int offset, int size);
+
+/**
+  * Unlock MERAM internal memory
+  * \param meram MERAM handle
+  * \param offset offset of the locked block
+  * \param size size of block to unlock in 1K units (e.g. 4 = 4K)
+  */
+void meram_unlock_memory_block(MERAM *meram, int offset, int size);
+
+/**
   * Directly allocte MERAM internal memory
   *   Using this method the applicatin is responsible for keeping
   *   track of which memory has been allocated for propler freeing

@@ -140,6 +140,44 @@ void meram_unlock_reg(MERAM *meram, MERAM_REG *meram_reg)
 	uiomux_unlock(meram->uiomux, UIOMUX_SH_MERAM);
 	free(meram_reg);
 }
+
+int meram_lock_memory_block(MERAM *meram, int offset, int size)
+{
+	int alloc_size = size << 10;
+	void *alloc_ptr = (u8 *) meram->mem_vaddr + offset;
+	struct reserved_address *current;
+
+	/* check if specified blocks would overlap reserved regions */
+	current = meram->reserved_mem;
+	while (current) {
+		unsigned long alloc_beg = (unsigned long)
+			((u8 *) alloc_ptr - (u8 *) meram->mem_vaddr);
+		unsigned long alloc_end = alloc_beg + alloc_size -
+			(1 << 10);
+		unsigned long cur_beg = current->start_block << 10;
+		unsigned long cur_end = current->end_block << 10;
+
+		if (alloc_beg > cur_end ) {
+			current = current->next;
+			continue;
+		}
+		if ((alloc_end) < cur_beg) {
+			current = current->next;
+			continue;
+		}
+		return -1;
+	}
+
+	return uiomux_mlock(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
+}
+
+void meram_unlock_memory_block(MERAM *meram, int offset, int size)
+{
+	int alloc_size = size << 10;
+	void *alloc_ptr = (u8 *) meram->mem_vaddr + offset;
+	uiomux_munlock(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
+}
+
 int meram_alloc_memory_block(MERAM *meram, int size)
 {
 	int alloc_size = size << 10;
