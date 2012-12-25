@@ -36,6 +36,8 @@ extern "C" {
 #define MEQSEL1		0x40
 #define MEQSEL2		0x44
 
+#define MAX_ICB_INDEX	127	/* common: 0 to 31, extend: 32 to 127 */
+
 /** \file
   * The libmeram C API
   *
@@ -75,6 +77,16 @@ void meram_close(MERAM *meram);
   * \retval 0 Failure, otherwise handle to the locked ICB
   */
 ICB *meram_lock_icb(MERAM *meram, int index);
+
+/**
+  * Lock access to a MERAM ICB registers only if it is free at the time of invocation.
+  * The application should hold this lock for as long as it will use
+  * the specified ICB.
+  * \param meram MERAM handle
+  * \param index index of the ICB to lock
+  * \retval 0 Failure, otherwise handle to the locked ICB
+  */
+ICB *meram_trylock_icb(MERAM *meram, int index);
 
 /**
   * Unlock a MERAM ICB registers when no longer needed
