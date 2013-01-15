@@ -349,6 +349,7 @@ parse_config_file(char *infile,
 			ipmmui_prev = ipmmui_current;
 		}
 		line_cnt ++;
+		free(fields);
 	}
 	fclose(cfg_file);
 	return 0;
