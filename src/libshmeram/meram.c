@@ -77,7 +77,9 @@ void meram_close(MERAM *meram)
 		uiomux_close(uiomux);
 		uiomux = NULL;
 		delete_reserved_addr_list(meram->reserved_mem);
+		meram->reserved_mem = NULL;
 		delete_ipmmui_settings(meram->ipmmui_config);
+		meram->ipmmui_config = NULL;
 	}
 	pthread_mutex_unlock(&uiomux_mutex);
 	free(meram);
