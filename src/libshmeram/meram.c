@@ -195,7 +195,7 @@ void meram_fill_memory_block(MERAM *meram, int offset,
 			     int n_blocks, unsigned int val)
 {
 	unsigned int bytes = n_blocks << 10;
-	unsigned long *ptr32 = (unsigned int *)
+	unsigned long *ptr32 = (unsigned long *)
 		((u8 *) meram->mem_vaddr + (offset << 10));
 	unsigned int i;
 
