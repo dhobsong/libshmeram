@@ -372,6 +372,7 @@ delete_ipmmui_settings(struct ipmmui_settings *head)
 	struct ipmmui_settings *next = head;
 	while (head) {
 		next = head->next;
+		free(head->tag);
 		free(head);
 		head = next;
 	}
