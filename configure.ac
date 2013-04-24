@@ -109,7 +109,7 @@ LIBS=""
 dnl
 dnl Check for libuiomux
 dnl
-PKG_CHECK_MODULES(UIOMUX, uiomux >= 1.5.2)
+PKG_CHECK_MODULES(UIOMUX, uiomux >= 1.7.0)
 
 dnl Overall configuration success flag
 meram_config_ok=yes
