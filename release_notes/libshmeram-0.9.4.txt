@@ -1,0 +1,40 @@
+libshmeram
+===========
+
+libshmeram: A library for accessing the SH-Mobile MERAM
+
+Copyright (C) 2011 Igel Co., Ltd.
+Copyright (C) 2011 Renesas Electronics Corporation
+
+The [SH-Mobile][0] processor series includes a memory caching unit for media
+access from the devices various hardware blocks, including VEU, VPU, JPU, etc.
+The memory caching unit can read-ahead and write-back access to the system
+memory as well as local storage for data being transferred between two media
+blocks.
+
+New in this release
+-------------------
+Add memory_{lock,unlock}_memory_block APIs to lock specific MERAM regions
+Properly lock ICB regions, preventing other tasks from accessing them
+libshmeram now requires libuiomux verion 1.7.0 or above
+Several memory leak and bug fixes
+
+
+Damian Hobson-Garcia (2):
+      Merge pull request #1 from matsu/master
+      Update libuiomux version dependency
+
+Katsuya Matsubara (7):
+      meram.conf: remove the description of reserving MERAM memory blocks
+      suppress a compiler warning on implicit type casting
+      fix a careless memory leak in parse_config_file()
+      fix an implicit memory leak in parse_config_file()
+      clear 'static' pointer value whenever the pointer is freed
+      Add meram_lock_memory_block and meram_unlock_memory_block
+      Lock an ICB slot actually by meram_lock_icb() and add meram_lock_trylock_icb()
+
+ config_data/meram.conf |    1 -
+ configure.ac           |    2 +-
+ include/meram/meram.h  |   33 ++++++++++++++++++
+ src/libshmeram/meram.c |   88 ++++++++++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 119 insertions(+), 5 deletions(-)
