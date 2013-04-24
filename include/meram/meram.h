@@ -36,6 +36,8 @@ extern "C" {
 #define MEQSEL1		0x40
 #define MEQSEL2		0x44
 
+#define MAX_ICB_INDEX	127	/* common: 0 to 31, extend: 32 to 127 */
+
 /** \file
   * The libmeram C API
   *
@@ -75,6 +77,16 @@ void meram_close(MERAM *meram);
   * \retval 0 Failure, otherwise handle to the locked ICB
   */
 ICB *meram_lock_icb(MERAM *meram, int index);
+
+/**
+  * Lock access to a MERAM ICB registers only if it is free at the time of invocation.
+  * The application should hold this lock for as long as it will use
+  * the specified ICB.
+  * \param meram MERAM handle
+  * \param index index of the ICB to lock
+  * \retval 0 Failure, otherwise handle to the locked ICB
+  */
+ICB *meram_trylock_icb(MERAM *meram, int index);
 
 /**
   * Unlock a MERAM ICB registers when no longer needed
@@ -120,6 +132,27 @@ int meram_alloc_icb_memory(MERAM *meram, ICB *icb, int size);
   *            meram_alloc_icb_memory
   */
 void meram_free_icb_memory(MERAM *meram, ICB *icb);
+
+/**
+  * Directly lock MERAM internal memory
+  *   Using this method the applicatin is responsible for keeping
+  *   track of which memory has been locked for proper unlocking
+  *   with meram_unlock_memory_block
+  * \param meram MERAM handle
+  * \param offset offset of block to lock
+  * \param size size of block to lock in 1K units (e.g. 4 = 4K)
+  * \retval -1 Failure
+  * 	     0 Success
+  */
+int meram_lock_memory_block(MERAM *meram, int offset, int size);
+
+/**
+  * Unlock MERAM internal memory
+  * \param meram MERAM handle
+  * \param offset offset of the locked block
+  * \param size size of block to unlock in 1K units (e.g. 4 = 4K)
+  */
+void meram_unlock_memory_block(MERAM *meram, int offset, int size);
 
 /**
   * Directly allocte MERAM internal memory

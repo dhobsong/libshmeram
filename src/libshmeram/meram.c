@@ -12,6 +12,10 @@ typedef uint8_t u8;
 static UIOMux *uiomux = NULL;
 static pthread_mutex_t uiomux_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static unsigned long icb_inuse[(MAX_ICB_INDEX + 1) >> 5];
+static pthread_mutex_t icb_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t icb_wq = PTHREAD_COND_INITIALIZER;
+
 static int ref_count = 0;
 
 static const char *uios[] = {
@@ -85,11 +89,30 @@ void meram_close(MERAM *meram)
 	free(meram);
 }
 
-
-ICB *meram_lock_icb(MERAM *meram, int index)
+static inline ICB *__meram_lock_icb(MERAM *meram, int index, int sync)
 {
 	ICB *icb;
         int pagesize = sysconf(_SC_PAGESIZE);
+	unsigned long mask;
+	int slot, ret;
+
+	if ((index < 0) || (index > MAX_ICB_INDEX))
+		return NULL;
+
+	/* wait until the target icb is available */
+	slot = index >> 5;
+	mask = 1UL << (index & 31);
+	pthread_mutex_lock(&icb_mutex);
+	while (icb_inuse[slot] & mask) {
+		if (!sync) {
+			pthread_mutex_unlock(&icb_mutex);
+			return NULL;
+		}
+		pthread_cond_wait(&icb_wq, &icb_mutex);
+	}
+	icb_inuse[slot] |= mask;
+	pthread_mutex_unlock(&icb_mutex);
+
 	icb = calloc (1, sizeof (*icb));
 	/*lock indeces 1 per icb positioned after memory pages*/
 	icb->lock_offset = ((meram->mem_len + pagesize - 1 )/pagesize) + index;
@@ -109,9 +132,21 @@ ICB *meram_lock_icb(MERAM *meram, int index)
 	return icb;
 }
 
+ICB *meram_lock_icb(MERAM *meram, int index)
+{
+	return __meram_lock_icb(meram, index, 1);
+}
+
+ICB *meram_trylock_icb(MERAM *meram, int index)
+{
+	return __meram_lock_icb(meram, index, 0);
+}
 
 void meram_unlock_icb(MERAM *meram, ICB *icb)
 {
+	int index = icb->index & 31;
+	int slot = icb->index >> 5;
+
 	/*partial uiomux unlock*/
 #ifdef EXPERIMENTAL
 	uiomux_partial_unlock(meram->uiomux, UIOMUX_SH_MERAM,
@@ -120,6 +155,11 @@ void meram_unlock_icb(MERAM *meram, ICB *icb)
 	icb->locked = 0;
 	meram_free_icb_memory(meram, icb);
 	free(icb);
+
+	pthread_mutex_lock(&icb_mutex);
+	icb_inuse[slot] &= ~(1UL << index);
+	pthread_cond_broadcast(&icb_wq);
+	pthread_mutex_unlock(&icb_mutex);
 }
 
 MERAM_REG *meram_lock_reg(MERAM *meram)
@@ -140,6 +180,44 @@ void meram_unlock_reg(MERAM *meram, MERAM_REG *meram_reg)
 	uiomux_unlock(meram->uiomux, UIOMUX_SH_MERAM);
 	free(meram_reg);
 }
+
+int meram_lock_memory_block(MERAM *meram, int offset, int size)
+{
+	int alloc_size = size << 10;
+	void *alloc_ptr = (u8 *) meram->mem_vaddr + offset;
+	struct reserved_address *current;
+
+	/* check if specified blocks would overlap reserved regions */
+	current = meram->reserved_mem;
+	while (current) {
+		unsigned long alloc_beg = (unsigned long)
+			((u8 *) alloc_ptr - (u8 *) meram->mem_vaddr);
+		unsigned long alloc_end = alloc_beg + alloc_size -
+			(1 << 10);
+		unsigned long cur_beg = current->start_block << 10;
+		unsigned long cur_end = current->end_block << 10;
+
+		if (alloc_beg > cur_end ) {
+			current = current->next;
+			continue;
+		}
+		if ((alloc_end) < cur_beg) {
+			current = current->next;
+			continue;
+		}
+		return -1;
+	}
+
+	return uiomux_mlock(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
+}
+
+void meram_unlock_memory_block(MERAM *meram, int offset, int size)
+{
+	int alloc_size = size << 10;
+	void *alloc_ptr = (u8 *) meram->mem_vaddr + offset;
+	uiomux_munlock(meram->uiomux, UIOMUX_SH_MERAM, alloc_ptr, alloc_size);
+}
+
 int meram_alloc_memory_block(MERAM *meram, int size)
 {
 	int alloc_size = size << 10;
