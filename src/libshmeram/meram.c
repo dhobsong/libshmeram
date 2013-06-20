@@ -227,7 +227,7 @@ int meram_alloc_memory_block(MERAM *meram, int size)
 	/* uiomux_malloc has minimum 1 page (4k) alignment*/
 	while (!alloc_ptr) {
 		alloc_ptr = uiomux_malloc(meram->uiomux, UIOMUX_SH_MERAM,
-			alloc_size, 1024);
+			alloc_size, alloc_size);
 		if (!alloc_ptr)
 			return -1;
 		current = meram->reserved_mem;
