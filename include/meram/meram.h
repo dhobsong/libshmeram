@@ -238,6 +238,15 @@ int meram_write_reg(MERAM *meram, MERAM_REG *meram_reg, int offset,
   * \retval 0 Failure, othewise address to access
   */
 unsigned long meram_get_icb_address(MERAM *meram, ICB *icb, int ab);
+
+/**
+ * Get the required MERAM memory size calculated from a stride and number of
+ * cache lines
+ * \param stride stride to be cached on MERAM
+ * \param line_num number of lines to be cached on MERAM
+ * \retval size of block calculated from the parameters in 1K units
+ */
+int meram_get_required_memory_size(int stride, int line_num);
 #ifdef __cplusplus
 }
 #endif
